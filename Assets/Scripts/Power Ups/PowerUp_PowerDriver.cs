@@ -1,44 +1,61 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
+using DG.Tweening;
 using UnityEngine;
 
 namespace Beyblade.Main
 {
-    public class PowerUp_PowerDriver : MonoBehaviour, IPowerUps
+    public class PowerUp_PowerDriver : PowerUpsBase
     {
-        private string PowerName = "Power Driver";
+        #region Class Variables
 
-        private BeybladeRunnerMgmt _effectedBeyblade;
+        /// <summary>
+        /// Basic max velocity. Can also change based on power level, player level etc. Consider setup in constructor
+        /// </summary>
+        private float _defaultMaxVelocity;
 
-        private Coroutine PowerCountdownCoroutine;
+        private float _powerMaxVelocity;
 
-        public float ActiveDuration { get; set; }
+        #endregion
 
-        public void Power()
+        /// <summary>
+        /// Dedicated class constructor
+        /// </summary>
+        /// <param name="effectedBeyblade">Beyblade Runner class for powers to effect</param>
+        /// <param name="defaultMaxVelocity">Adjust values as per Power level or Player level etc</param>
+        /// <param name="powerMaxVelocity">Adjust values as per Power level or Player level etc</param>
+        public PowerUp_PowerDriver(BeybladeRunnerMgmt effectedBeyblade, float defaultMaxVelocity = 16,
+            float powerMaxVelocity = 19)
         {
-            _effectedBeyblade.PowerActive?.Invoke(PowerName);
-
-            _effectedBeyblade.MaxVelocity += 19;
-
-            PowerCountdownCoroutine = StartCoroutine(PowerActiveCountdown());
+            _effectedBeyblade = effectedBeyblade;
+            _defaultMaxVelocity = defaultMaxVelocity;
+            _powerMaxVelocity = powerMaxVelocity;
         }
 
-        public void Activate(BeybladeRunnerMgmt beyblade)
-        {
-            _effectedBeyblade = beyblade;
 
-            Power();
+        private void Start()
+        {
+            _powerName = "Power Driver";
         }
 
-        public void Deactivate()
+        protected override void Power()
         {
-            _effectedBeyblade.MaxVelocity = 16;
+            Debug.Log("Power Driver Active");
+
+            _effectedBeyblade.MaxVelocity += _powerMaxVelocity;
+
+            DOVirtual.DelayedCall(10, Deactivate);
         }
 
-        private IEnumerator PowerActiveCountdown()
+
+        public override void Deactivate()
         {
-            yield return new WaitForSeconds(10);
-            Deactivate();
+            base.Deactivate();
+
+            Debug.Log("Power Driver Deactivated");
+
+            _effectedBeyblade.MaxVelocity = _defaultMaxVelocity;
         }
     }
 }

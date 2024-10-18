@@ -3,9 +3,12 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Events;
+using UnityEngine.Serialization;
+using Random = UnityEngine.Random;
 
 namespace Beyblade.Main
 {
+    [RequireComponent(typeof(Beyblade_PowerUpsMgmt))]
     public class BeybladeRunnerMgmt : MonoBehaviour
     {
         /* What will be here
@@ -44,7 +47,7 @@ namespace Beyblade.Main
 
         public float CurrentRPM
         {
-            get { return _currRPM; }
+            get => _currRPM;
             set
             {
                 if (value >= 0) _currRPM = value;
@@ -55,7 +58,7 @@ namespace Beyblade.Main
 
         public float MaxVelocity
         {
-            get { return _maxVelocity; }
+            get => _maxVelocity;
             set
             {
                 if (value >= 0) _maxVelocity = value;
@@ -68,9 +71,9 @@ namespace Beyblade.Main
 
         #region Gameplay Variables
 
-        private float _collisionFreeTime = 0;
+        private float _collisionFreeTime;
         private bool _isDisabledDebuff;
-        private CurrentActivePowerUp _activePower;
+        private List<PowerUpsBase> _activePowerUps;
 
         #endregion
 
@@ -82,8 +85,29 @@ namespace Beyblade.Main
 
         #region Unity Events
 
-        [HideInInspector] public UnityEvent<float> OnHit = new();
-        [HideInInspector] public UnityEvent<string> PowerActive = new();
+        /// <summary>
+        /// Event generally called on collision, receives collision enemy velocity
+        /// </summary>
+        [HideInInspector] public UnityEvent<float> OnCollide = new();
+
+        /// <summary>
+        /// Called through OnCollide event, provides player's velocity and colliding enemy velocity.
+        /// </summary>
+        [HideInInspector] public UnityEvent<float, float> OnHitCall = new();
+
+        [HideInInspector] public UnityEvent<bool> DisabledDebuffCall = new();
+
+        /// <summary>
+        /// Event called from respective power ups. Consider attaching UI events etc.
+        /// </summary>
+        [HideInInspector] public UnityEvent<PowerUpsBase> PowerActivate = new();
+
+        /// <summary>
+        /// Event called from respective power ups. Aid in power ups list management and UI events
+        /// </summary>
+        [HideInInspector] public UnityEvent<PowerUpsBase> PowerDeactivate = new();
+
+        [HideInInspector] public UnityEvent OnCritHit = new();
 
         #endregion
 
@@ -94,12 +118,30 @@ namespace Beyblade.Main
         private void Start()
         {
             // Setup events subscription as required
+
+            DisabledDebuffCall.AddListener((bool active) => _isDisabledDebuff = active);
         }
 
         private void Update()
         {
             //Player control pending
             // if(!_isDisabledDebuff)
+        }
+
+        private void OnCollisionEnter(Collision other)
+        {
+            // if tag compared with enemy and walls
+
+            OnHitCall?.Invoke(_currVelocity, other.transform.GetComponent<BeybladeRunnerMgmt>().CurrentVelocity);
+        }
+
+        [ContextMenu("Collision")]
+        private void TempCollision()
+        {
+            int x = Random.Range(4, 20);
+            OnHitCall?.Invoke(x, 4);
+
+            Debug.Log(x.ToString() + " vs 4");
         }
     }
 }
