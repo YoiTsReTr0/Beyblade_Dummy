@@ -138,10 +138,10 @@ namespace Beyblade.Main
         [ContextMenu("Collision")]
         private void TempCollision()
         {
-            int x = Random.Range(4, 20);
-            OnHitCall?.Invoke(x, 4);
+            int x = Random.Range(4, 18);
+            OnHitCall?.Invoke(x, 18);
 
-            Debug.Log(x.ToString() + " vs 4");
+            Debug.Log(x.ToString() + " vs 18");
         }
     }
 }
